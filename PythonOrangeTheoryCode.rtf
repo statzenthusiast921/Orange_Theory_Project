@@ -1,0 +1,134 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2512
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww15200\viewh11960\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 #Getting Started - Loading Libraries\
+import pandas as pd\
+import numpy as np\
+import os\
+os.getcwd()\
+\
+#Load data\
+os.chdir('/Users/jonzimmerman/Desktop/Data Projects/OT Data Analysis')\
+data=pd.read_excel('OrangeTheoryData.xlsx')\
+data.head()\
+data.columns\
+data.shape\
+data.isna().sum()\
+data.count()\
+data.describe()\
+\
+\
+#Plot data\
+from matplotlib import pyplot as plt\
+import seaborn as sns\
+%matplotlib inline\
+import warnings\
+warnings.filterwarnings('ignore')\
+\
+sns.barplot(x="Location",y="Calories",data=data)\
+sns.barplot(x="Location",y="Calories_Splat",data=data)\
+sns.barplot(x="Location",y="Green_Perc",data=data)\
+\
+\
+\
+viz2a=sns.kdeplot(data.Calories,data.Splat,\
+               shade=True,shade_lowest=False,cmap='Greens')\
+viz2b=sns.kdeplot(data.Calories,data.Splat,cmap='Greens')\
+\
+sns.set()\
+j=sns.jointplot(data=data,x='Calories',y='Splat')\
+\
+\
+#Run a Poisson Regression Model on Calories Burned\
+from patsy import dmatrices\
+import statsmodels.api as sm\
+\
+formula = """Calories ~ C(Location)+ AvgHR + DaysSince + ClassLength + Splat"""\
+response, predictors = dmatrices(formula, data, return_type='dataframe')\
+po_results = sm.GLM(response, predictors, family=sm.families.Poisson()).fit()\
+print(po_results.summary())\
+\
+\
+#Condense Location categories down to only studios with at least 4 visits\
+data.Location.unique()\
+data["Location"].value_counts()\
+\
+\
+data['StudioCounts'] = data['Location'].map(data['Location'].value_counts())\
+def f(row):\
+    if row['StudioCounts'] >= 4:\
+        Location2 = row['Location']\
+    elif row['StudioCounts'] < 4:\
+        Location2 = "Other"\
+    return Location2\
+\
+data['Location2'] = data.apply(f, axis=1)\
+data["Location2"].value_counts()\
+\
+\
+#Condense Trainer categories down to only trainers with at least 4 visits\
+data['TrainerCounts'] = data['Trainer'].map(data['Trainer'].value_counts())\
+def f(row):\
+    if row['TrainerCounts'] >= 3:\
+        Trainer2 = row['Trainer']\
+    elif row['TrainerCounts'] < 3:\
+        Trainer2 = "Other"\
+    return Trainer2\
+\
+data['Trainer2'] = data.apply(f, axis=1)\
+data["Trainer2"].value_counts()\
+\
+\
+sns.barplot(x="Location2",y="Splat",data=data)\
+sns.barplot(x="Trainer2",y="Splat",data=data)\
+\
+\
+\
+#Rerun Poisson Regression model with new trainer and location variables\
+formula = """Calories ~ C(Trainer2, Treatment('Other'))+C(Location2, Treatment('Other'))+ AvgHR + DaysSince + ClassLength + Splat"""\
+response, predictors = dmatrices(formula, data, return_type='dataframe')\
+po_results = sm.GLM(response, predictors, family=sm.families.Poisson()).fit()\
+print(po_results.summary())\
+\
+\
+\
+import matplotlib.pyplot as plt\
+\
+# Data to plot\
+labels = data['Location2'].unique()\
+sizes = (data['Location2'].value_counts().sort_index()/data['Location2'].value_counts().sum())*100\
+\
+# Plot\
+plt.pie(sizes, labels=sizes.index,\
+autopct='%1.1f%%', shadow=True, startangle=240)\
+\
+plt.axis('equal')\
+#plt.legend(sizes.index, loc="best")\
+plt.tight_layout()\
+\
+plt.show()\
+\
+\
+\
+\
+import matplotlib.pyplot as plt\
+\
+# Data to plot\
+labels = data['Weekday'].unique()\
+sizes = (data['Weekday'].value_counts().sort_index()/data['Weekday'].value_counts().sum())*100\
+\
+# Plot\
+plt.pie(sizes, labels=sizes.index,\
+autopct='%1.1f%%', shadow=True, startangle=100)\
+\
+plt.axis('equal')\
+#plt.legend(sizes.index, loc="best")\
+plt.tight_layout()\
+\
+plt.show()\
+\
+}

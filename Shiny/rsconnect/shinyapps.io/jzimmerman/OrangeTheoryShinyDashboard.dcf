@@ -1,0 +1,12 @@
+name: OrangeTheoryShinyDashboard
+title: OrangeTheoryShinyDashboard
+username:
+account: jzimmerman
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2353429
+bundleId: 3404361
+url: https://jzimmerman.shinyapps.io/OrangeTheoryShinyDashboard/
+when: 1595001441.23698
+asMultiple: FALSE
+asStatic: FALSE
